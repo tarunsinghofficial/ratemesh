@@ -4,6 +4,9 @@
 
 A production-grade rate limiter that any Node.js API can use as drop-in middleware. Implements three algorithms (Fixed Window, Sliding Window Log, Token Bucket), supports in-memory and Redis-backed distributed storage, and includes built-in metrics — all with zero external monitoring dependencies.
 
+<img width="1052" height="603" alt="Screenshot 2026-05-20 at 1 37 14 PM" src="https://github.com/user-attachments/assets/cf50d19e-97ec-479d-a711-de8a2eaea136" />
+
+
 ## Quick Start
 
 ### Install
@@ -126,6 +129,9 @@ Every response includes standard rate limiting headers:
 | `X-RateLimit-Remaining` | Requests left in window           | Always      |
 | `X-RateLimit-Reset`     | Unix timestamp when window resets | Always      |
 | `Retry-After`           | Seconds until client can retry    | Only on 429 |
+
+<img width="593" height="634" alt="Screenshot 2026-05-20 at 1 36 55 PM" src="https://github.com/user-attachments/assets/87243a07-0607-4edb-a905-c5038d9a3377" />
+
 
 ## Algorithms
 
