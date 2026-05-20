@@ -1,5 +1,5 @@
 const { MetricsCollector } = require('../src/metrics/MetricsCollector');
-const { RateMesh } = require('../src/middleware/RateMesh');
+const { RateLime } = require('../src/middleware/RateLime');
 const express = require('express');
 const request = require('supertest');
 
@@ -95,7 +95,7 @@ describe('MetricsCollector', () => {
 // METRICS INTEGRATION WITH MIDDLEWARE
 // ═══════════════════════════════════════════════════════════════════════════════
 
-describe('RateMesh + Metrics Integration', () => {
+describe('RateLime + Metrics Integration', () => {
     let mockNow;
 
     function setMockTime(ms) {
@@ -109,7 +109,7 @@ describe('RateMesh + Metrics Integration', () => {
 
     test('middleware records metrics automatically', async () => {
         setMockTime(1000000);
-        const limiter = new RateMesh({
+        const limiter = new RateLime({
             algorithm: 'token-bucket',
             limit: 3,
             window: 60000,
@@ -134,7 +134,7 @@ describe('RateMesh + Metrics Integration', () => {
 
     test('resetMetrics clears middleware metrics', async () => {
         setMockTime(1000000);
-        const limiter = new RateMesh({ limit: 5, window: 60000 });
+        const limiter = new RateLime({ limit: 5, window: 60000 });
 
         const app = express();
         app.use(limiter.middleware());

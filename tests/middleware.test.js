@@ -1,6 +1,6 @@
 const express = require('express');
 const request = require('supertest');
-const { RateMesh } = require('../src/middleware/RateMesh');
+const { RateLime } = require('../src/middleware/RateLime');
 
 // ─── Helper: fake time control ───────────────────────────────────────────────
 let mockNow;
@@ -19,10 +19,10 @@ afterEach(() => {
     jest.restoreAllMocks();
 });
 
-// ─── Helper: create an Express app with RateMesh ─────────────────────────────
-function createApp(rateMeshOptions, routes) {
+// ─── Helper: create an Express app with RateLime ─────────────────────────────
+function createApp(RateLimeOptions, routes) {
     const app = express();
-    const limiter = new RateMesh(rateMeshOptions);
+    const limiter = new RateLime(RateLimeOptions);
 
     // Apply middleware
     if (routes) {
@@ -47,7 +47,7 @@ function createApp(rateMeshOptions, routes) {
 // BASIC MIDDLEWARE BEHAVIOR
 // ═══════════════════════════════════════════════════════════════════════════════
 
-describe('RateMesh Middleware', () => {
+describe('RateLime Middleware', () => {
 
     describe('basic rate limiting', () => {
         test('allows requests under the limit', async () => {
@@ -251,7 +251,7 @@ describe('RateMesh Middleware', () => {
     describe('middleware overrides', () => {
         test('per-route overrides via middleware(options)', async () => {
             setMockTime(1000000);
-            const limiter = new RateMesh({
+            const limiter = new RateLime({
                 algorithm: 'token-bucket',
                 limit: 100,
                 window: 60000,
@@ -305,7 +305,7 @@ describe('RateMesh Middleware', () => {
     describe('error handling', () => {
         test('fails open when algorithm throws', async () => {
             setMockTime(1000000);
-            const limiter = new RateMesh({
+            const limiter = new RateLime({
                 algorithm: 'token-bucket',
                 limit: 5,
                 window: 60000,
@@ -334,13 +334,13 @@ describe('RateMesh Middleware', () => {
 
     describe('constructor', () => {
         test('defaults to token-bucket + memory', () => {
-            const limiter = new RateMesh();
+            const limiter = new RateLime();
             expect(limiter.algorithm).toBe('token-bucket');
             expect(limiter.storageType).toBe('memory');
         });
 
         test('throws on unknown algorithm', () => {
-            expect(() => new RateMesh({ algorithm: 'bogus' })).toThrow();
+            expect(() => new RateLime({ algorithm: 'bogus' })).toThrow();
         });
     });
 });

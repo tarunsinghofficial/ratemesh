@@ -122,7 +122,7 @@ describe('RedisStorage', () => {
         redis = new RedisStorage({
             host: 'localhost',
             port: 6379,
-            keyPrefix: 'ratemesh:test:',
+            keyPrefix: 'ratelime:test:',
         });
         try {
             await redis.connect();
@@ -135,7 +135,7 @@ describe('RedisStorage', () => {
     afterAll(async () => {
         if (redisAvailable) {
             // Clean up test keys
-            const keys = await redis.client.keys('ratemesh:test:*');
+            const keys = await redis.client.keys('ratelime:test:*');
             if (keys.length > 0) {
                 await redis.client.del(...keys);
             }

@@ -1,7 +1,7 @@
 /**
- * RateMesh Demo Server
+ * RateLime Demo Server
  * 
- * A quick demo showing RateMesh in action.
+ * A quick demo showing RateLime in action.
  * Run: node examples/demo-server.js
  * Test: curl -i http://localhost:3000/api/data (hit it rapidly to see 429s)
  */
@@ -26,7 +26,7 @@ app.use(limiter.middleware());
 // ─── Routes ──────────────────────────────────────────────────────────────────
 app.get('/', (req, res) => {
     res.json({
-        name: 'RateMesh Demo',
+        name: 'RateLime Demo',
         routes: {
             'GET /api/data': 'Rate limited (10 req/min)',
             'POST /api/auth/login': 'Strictly rate limited (3 req/min)',
@@ -36,7 +36,7 @@ app.get('/', (req, res) => {
 });
 
 app.get('/api/data', (req, res) => {
-    res.json({ data: 'Hello from RateMesh!', timestamp: new Date().toISOString() });
+    res.json({ data: 'Hello from RateLime!', timestamp: new Date().toISOString() });
 });
 
 // Stricter limit for auth endpoints
@@ -51,7 +51,7 @@ app.get('/metrics', (req, res) => {
 
 // ─── Start ───────────────────────────────────────────────────────────────────
 app.listen(PORT, () => {
-    console.log(`\n🚀 RateMesh Demo running on http://localhost:${PORT}`);
+    console.log(`\n🚀 RateLime Demo running on http://localhost:${PORT}`);
     console.log(`\nTry these:`);
     console.log(`  curl -i http://localhost:${PORT}/api/data      # hit rapidly to see 429`);
     console.log(`  curl -X POST http://localhost:${PORT}/api/auth/login  # only 3/min`);

@@ -7,7 +7,7 @@
  *   - Express middleware (extracts client ID, checks limit, sets headers)
  * 
  * USAGE:
- *   const { RateMesh } = require('ratemesh');
+ *   const { RateMesh } = require('ratelime');
  * 
  *   // Simple — protect all routes
  *   const limiter = new RateMesh({ limit: 100, window: 60000 });
@@ -37,7 +37,7 @@ const { TokenBucket } = require('../algorithms/TokenBucket');
 const { RedisStorage } = require('../storage/RedisStorage');
 const { MetricsCollector } = require('../metrics/MetricsCollector');
 
-class RateMesh {
+class RateLime {
     /**
      * @param {Object} options
      * @param {string}   [options.algorithm='token-bucket']  - 'token-bucket' | 'fixed-window' | 'sliding-window'
@@ -308,4 +308,4 @@ class RateMesh {
     }
 }
 
-module.exports = { RateMesh };
+module.exports = { RateLime };

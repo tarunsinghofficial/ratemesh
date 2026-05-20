@@ -39,7 +39,7 @@ const Redis = require('ioredis');
  * Uses a Redis hash to store { tokens, lastRefill } per client.
  * Performs lazy refill calculation, then checks/decrements atomically.
  * 
- * KEYS[1] = client key (e.g., "ratemesh:tb:192.168.1.1")
+ * KEYS[1] = client key (e.g., "ratelime:tb:192.168.1.1")
  * ARGV[1] = capacity (max tokens)
  * ARGV[2] = refillRate (tokens per millisecond, as string for precision)
  * ARGV[3] = now (current timestamp in ms)
@@ -203,10 +203,10 @@ class RedisStorage {
      * @param {string} [options.host='localhost']
      * @param {number} [options.port=6379]
      * @param {string} [options.password]
-     * @param {string} [options.keyPrefix='ratemesh:'] - prefix for all keys
+     * @param {string} [options.keyPrefix='ratelime:'] - prefix for all keys
      */
     constructor(options = {}) {
-        this.keyPrefix = options.keyPrefix || 'ratemesh:';
+        this.keyPrefix = options.keyPrefix || 'ratelime:';
         this.client = new Redis({
             host: options.host || 'localhost',
             port: options.port || 6379,

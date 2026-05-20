@@ -1,16 +1,16 @@
 /**
- * RateMesh — Distributed API Rate Limiting Engine
+ * RateLime — Distributed API Rate Limiting Engine
  * 
  * Main entry point. Import everything from here.
  * 
  * Usage:
- *   const { RateMesh } = require('ratemesh');
+ *   const { RateMesh } = require('ratelime');
  *   const limiter = new RateMesh({ limit: 100, window: 60000 });
  *   app.use(limiter.middleware());
  */
 
 // The main middleware class (what most developers use)
-const { RateMesh } = require('./middleware/RateMesh');
+const { RateMesh } = require('./middleware/RateLime');
 
 // Individual algorithms (for advanced usage or direct access)
 const { FixedWindow } = require('./algorithms/FixedWindow');

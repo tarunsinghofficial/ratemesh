@@ -1,6 +1,6 @@
 {
-  "name": "ratemesh",
-  "version": "1.0.0",
+  "name": "ratelime",
+  "version": "0.1.0",
   "description": "Distributed Rate limiter for Node.js APIs",
   "license": "ISC",
   "author": "",

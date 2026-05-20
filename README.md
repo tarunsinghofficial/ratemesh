@@ -1,4 +1,4 @@
-# RateMesh
+# RateLime
 
 **Distributed API Rate Limiting Engine for Node.js**
 
@@ -15,7 +15,7 @@ A production-grade rate limiter that any Node.js API can use as drop-in middlewa
                         │        YOUR NODE.JS API          │
                         │                                  │
                         │  ┌───────────────────────────┐  │
-                        │  │   RateMesh Middleware      │  │
+                        │  │   RateLime Middleware      │  │
                         │  │                           │  │
                         │  │  1. Extract identifier    │  │
                         │  │     (IP / API key / userID)│  │
@@ -52,14 +52,14 @@ A production-grade rate limiter that any Node.js API can use as drop-in middlewa
 ### Install
 
 ```bash
-npm install ratemesh
+npm install ratelime
 ```
 
 ### Basic Usage (3 lines)
 
 ```javascript
 const express = require('express');
-const { RateMesh } = require('ratemesh');
+const { RateMesh } = require('ratelime');
 
 const app = express();
 const limiter = new RateMesh({ limit: 100, window: 60000 }); // 100 req/min
@@ -184,10 +184,13 @@ See [DECISIONS.md](DECISIONS.md) for detailed trade-off analysis.
 
 ```bash
 # Start Redis
-docker-compose up -d
+docker compose up -d
 
 # Run all tests (including Redis tests)
 npm test
+
+# Try the demo
+npm run demo
 ```
 
 ## Project Structure
@@ -210,12 +213,9 @@ ratemesh/
 │   ├── metrics/
 │   │   └── MetricsCollector.js     ← Built-in, zero-dependency metrics
 │   └── index.js                    ← Main entry point
-├── tests/
-│   ├── lru.test.js                 ← 17 tests
-│   ├── algorithms.test.js          ← 40 tests
-│   ├── storage.test.js             ← 12 + 9 Redis tests
-│   ├── middleware.test.js           ← 17 tests
-│   └── metrics.test.js             ← Metrics tests
+├── tests/                          ← 106 tests across 5 suites
+├── examples/
+│   └── demo-server.js              ← Quick demo server
 ├── docker-compose.yml              ← Redis
 ├── DECISIONS.md                    ← Architectural decisions
 ├── BENCHMARKS.md                   ← Algorithm comparison
