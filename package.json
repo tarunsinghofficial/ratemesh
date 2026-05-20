@@ -1,0 +1,35 @@
+{
+  "name": "ratemesh",
+  "version": "1.0.0",
+  "description": "Distributed Rate limiter for Node.js APIs",
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "src/index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "jest --verbose",
+    "demo": "node examples/demo-server.js"
+  },
+  "keywords": [
+    "rate-limiter",
+    "rate-limiting",
+    "middleware",
+    "express",
+    "redis",
+    "distributed",
+    "token-bucket",
+    "sliding-window",
+    "api"
+  ],
+  "dependencies": {
+    "express": "^5.2.1",
+    "ioredis": "^5.10.1"
+  },
+  "devDependencies": {
+    "jest": "^30.4.2",
+    "supertest": "^7.2.2"
+  }
+}
