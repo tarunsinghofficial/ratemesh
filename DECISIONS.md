@@ -1,6 +1,6 @@
 # Architectural Decisions
 
-Every engineering choice in RateMesh is documented here with the problem, decision, trade-off, and reasoning. This is the document interviewers care about — it shows you think in trade-offs, not just code.
+Every engineering choice in RateLime is documented here with the problem, decision, trade-off, and reasoning. This is the document interviewers care about — it shows you think in trade-offs, not just code.
 
 ---
 
@@ -11,6 +11,7 @@ Every engineering choice in RateMesh is documented here with the problem, decisi
 A client can send `limit` requests at the end of window 1, then `limit` more at the start of window 2 — getting 2× the intended rate in a few seconds.
 
 **Demonstration (from our tests):**
+
 ```
 Limit: 5 requests per 60 seconds
 
@@ -25,6 +26,7 @@ Result: 10 requests in ~1 second with a "5 per 60s" limit.
 **Decision:** Token Bucket as the default/recommended algorithm.
 
 **Why Token Bucket wins:**
+
 - **O(1) memory per client** — just 2 numbers (tokens + lastRefillTime)
 - **No boundary flaw** — tokens refill continuously, not at discrete boundaries
 - **Handles bursts naturally** — bucket fills during quiet periods, absorbs spikes
@@ -41,6 +43,7 @@ Result: 10 requests in ~1 second with a "5 per 60s" limit.
 **Decision:** Implement Sliding Window Log as an option, but not the default.
 
 **Why it's not default:**
+
 ```
 Memory per client = O(number of requests in window)
 
@@ -64,6 +67,7 @@ That's a 5,000× difference.
 **Decision:** LRU (Least Recently Used) cache with configurable capacity.
 
 **Why LRU:**
+
 - Active clients (recent requests) stay in cache → accurate rate limiting
 - Idle clients (no recent requests) get evicted → bounded memory
 - All operations are O(1) — HashMap for lookup, Doubly Linked List for order tracking
@@ -71,6 +75,7 @@ That's a 5,000× difference.
 **Implementation:** Hand-built from scratch (no `lru-cache` npm package). HashMap + Doubly Linked List with sentinel nodes.
 
 **Trade-off:** When a client is evicted and comes back, their counter resets. This is acceptable for rate limiting because:
+
 1. If they were idle long enough to be evicted, their window/tokens would have reset anyway
 2. The alternative (keeping everyone) means unbounded memory
 
@@ -93,6 +98,7 @@ Redis MULTI/EXEC transactions don't help here — they batch commands but don't 
 **Decision:** Lua scripts executed via `EVAL`.
 
 **Why:**
+
 - Redis is single-threaded
 - A Lua script runs to completion without interruption
 - The entire read-check-write happens atomically
@@ -121,11 +127,12 @@ end
 
 ```javascript
 // Same code, different storage — just change one config field
-new RateMesh({ storage: 'memory', ... })  // development, single server
-new RateMesh({ storage: 'redis', ... })   // production, multi-server
+new RateLime({ storage: 'memory', ... })  // development, single server
+new RateLime({ storage: 'redis', ... })   // production, multi-server
 ```
 
 **Why not just use Redis always?**
+
 - Redis adds ~2-5ms latency per request
 - Requires running a Redis instance (operational overhead)
 - For single-server deployments, in-memory is faster and simpler
@@ -138,18 +145,20 @@ new RateMesh({ storage: 'redis', ... })   // production, multi-server
 ## 6. Why Fail-Open on Errors
 
 **Problem:** What happens when Redis goes down? Two options:
+
 1. **Fail open** — allow the request through (rate limiting stops, but API works)
 2. **Fail closed** — deny the request (rate limiting is enforced, but API is down)
 
 **Decision:** Fail open.
 
 **Why:**
+
 - Rate limiting is a **protection layer**, not a core business function
 - If Redis dies, your API should still serve requests
 - A brief window without rate limiting is better than a complete outage
 - You can add alerting on the error logs to detect the issue quickly
 
-**Trade-off:** During a Redis outage, clients can exceed their rate limits. For most APIs, this is acceptable. For billing-critical systems, you might want fail-closed — RateMesh logs the error so you can make that decision.
+**Trade-off:** During a Redis outage, clients can exceed their rate limits. For most APIs, this is acceptable. For billing-critical systems, you might want fail-closed — RateLime logs the error so you can make that decision.
 
 ---
 
@@ -160,12 +169,14 @@ new RateMesh({ storage: 'redis', ... })   // production, multi-server
 **Decision:** Zero-dependency MetricsCollector built into the library.
 
 **What it tracks:**
+
 - Total requests (allowed/denied) per algorithm
 - Latency percentiles (p50, p95, p99)
 - Top denied clients (abuse detection)
 - Requests per second
 
 **Why not Prometheus/AppSignal/Datadog?**
+
 - A library shouldn't dictate your monitoring stack
 - Zero config needed — metrics work out of the box
 - Consumers can pipe `getMetrics()` output to any APM they already use
@@ -182,6 +193,7 @@ new RateMesh({ storage: 'redis', ... })   // production, multi-server
 **Decision:** Redis Sorted Sets (ZSET) for the Redis implementation.
 
 **Why ZSET is perfect for this:**
+
 - `ZADD` to insert timestamps (score = timestamp, O(log n))
 - `ZREMRANGEBYSCORE` to prune old timestamps efficiently (O(log n + k))
 - `ZCARD` to count remaining entries (O(1))

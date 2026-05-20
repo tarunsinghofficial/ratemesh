@@ -4,49 +4,6 @@
 
 A production-grade rate limiter that any Node.js API can use as drop-in middleware. Implements three algorithms (Fixed Window, Sliding Window Log, Token Bucket), supports in-memory and Redis-backed distributed storage, and includes built-in metrics — all with zero external monitoring dependencies.
 
-```
-                        ┌─────────────────────────────────┐
-                        │         CLIENT / API USER        │
-                        │   (browser, mobile, other svc)  │
-                        └────────────────┬────────────────┘
-                                         │ HTTP Request
-                                         ▼
-                        ┌─────────────────────────────────┐
-                        │        YOUR NODE.JS API          │
-                        │                                  │
-                        │  ┌───────────────────────────┐  │
-                        │  │   RateLime Middleware      │  │
-                        │  │                           │  │
-                        │  │  1. Extract identifier    │  │
-                        │  │     (IP / API key / userID)│  │
-                        │  │                           │  │
-                        │  │  2. Check algorithm:      │  │
-                        │  │     Token Bucket /        │  │
-                        │  │     Sliding Window /      │  │
-                        │  │     Fixed Window          │  │
-                        │  │                           │  │
-                        │  │  3. Check storage:        │  │
-                        │  │     LRU Cache (single)    │  │
-                        │  │     Redis (distributed)   │  │
-                        │  │                           │  │
-                        │  │  4. Decision:             │  │
-                        │  │     ALLOW → next()        │  │
-                        │  │     DENY  → 429 response  │  │
-                        │  └───────────────────────────┘  │
-                        │                                  │
-                        └────────┬─────────────┬──────────┘
-                                 │             │
-                    ┌────────────▼──┐    ┌─────▼──────────┐
-                    │  LRU Cache    │    │  Redis          │
-                    │  (in-memory)  │    │  (distributed)  │
-                    │               │    │                 │
-                    │  HashMap +    │    │  Lua scripts    │
-                    │  Doubly       │    │  for atomic     │
-                    │  Linked List  │    │  operations     │
-                    │  O(1) ops     │    │                 │
-                    └───────────────┘    └─────────────────┘
-```
-
 ## Quick Start
 
 ### Install
@@ -58,15 +15,15 @@ npm install ratelime
 ### Basic Usage (3 lines)
 
 ```javascript
-const express = require('express');
-const { RateMesh } = require('ratelime');
+const express = require("express");
+const { RateLime } = require("ratelime");
 
 const app = express();
-const limiter = new RateMesh({ limit: 100, window: 60000 }); // 100 req/min
+const limiter = new RateLime({ limit: 100, window: 60000 }); // 100 req/min
 
 app.use(limiter.middleware());
 
-app.get('/api/data', (req, res) => res.json({ hello: 'world' }));
+app.get("/api/data", (req, res) => res.json({ hello: "world" }));
 
 app.listen(3000);
 ```
@@ -74,10 +31,10 @@ app.listen(3000);
 ### With Redis (distributed)
 
 ```javascript
-const limiter = new RateMesh({
-  algorithm: 'token-bucket',
-  storage: 'redis',
-  redis: { host: 'localhost', port: 6379 },
+const limiter = new RateLime({
+  algorithm: "token-bucket",
+  storage: "redis",
+  redis: { host: "localhost", port: 6379 },
   limit: 1000,
   window: 60000,
 });
@@ -89,45 +46,45 @@ app.use(limiter.middleware());
 ### Route-Specific Rules
 
 ```javascript
-const limiter = new RateMesh({
-  algorithm: 'token-bucket',
+const limiter = new RateLime({
+  algorithm: "token-bucket",
   rules: [
-    { limit: 1000, window: 60000 },                       // global: 1000/min
-    { match: '/api/auth/*', limit: 10, window: 60000 },   // auth: 10/min
+    { limit: 1000, window: 60000 }, // global: 1000/min
+    { match: "/api/auth/*", limit: 10, window: 60000 }, // auth: 10/min
   ],
 });
 
 app.use(limiter.middleware());
 
 // Or override per-route:
-app.post('/api/auth/login', limiter.middleware({ limit: 5 }), loginHandler);
+app.post("/api/auth/login", limiter.middleware({ limit: 5 }), loginHandler);
 ```
 
 ### Custom Client Identification
 
 ```javascript
-const limiter = new RateMesh({
+const limiter = new RateLime({
   limit: 5000,
   window: 60000,
-  keyGenerator: (req) => req.headers['x-api-key'] || req.ip,
+  keyGenerator: (req) => req.headers["x-api-key"] || req.ip,
 });
 ```
 
 ## API Reference
 
-### `new RateMesh(options)`
+### `new RateLime(options)`
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `algorithm` | string | `'token-bucket'` | `'token-bucket'`, `'fixed-window'`, or `'sliding-window'` |
-| `storage` | string | `'memory'` | `'memory'` or `'redis'` |
-| `limit` | number | `100` | Max requests per window |
-| `window` | number | `60000` | Window size in milliseconds |
-| `keyGenerator` | function | `(req) => req.ip` | Extracts client identifier from request |
-| `redis` | object | `{}` | ioredis connection options (host, port, password) |
-| `rules` | array | `[]` | Route-specific rules (see below) |
-| `onDenied` | function | `null` | Custom 429 response handler `(req, res)` |
-| `maxClients` | number | `10000` | Max clients in LRU cache (memory mode) |
+| Option         | Type     | Default           | Description                                               |
+| -------------- | -------- | ----------------- | --------------------------------------------------------- |
+| `algorithm`    | string   | `'token-bucket'`  | `'token-bucket'`, `'fixed-window'`, or `'sliding-window'` |
+| `storage`      | string   | `'memory'`        | `'memory'` or `'redis'`                                   |
+| `limit`        | number   | `100`             | Max requests per window                                   |
+| `window`       | number   | `60000`           | Window size in milliseconds                               |
+| `keyGenerator` | function | `(req) => req.ip` | Extracts client identifier from request                   |
+| `redis`        | object   | `{}`              | ioredis connection options (host, port, password)         |
+| `rules`        | array    | `[]`              | Route-specific rules (see below)                          |
+| `onDenied`     | function | `null`            | Custom 429 response handler `(req, res)`                  |
+| `maxClients`   | number   | `10000`           | Max clients in LRU cache (memory mode)                    |
 
 ### Rules
 
@@ -163,20 +120,20 @@ Returns a metrics snapshot:
 
 Every response includes standard rate limiting headers:
 
-| Header | Description | When |
-|--------|-------------|------|
-| `X-RateLimit-Limit` | Max requests allowed | Always |
-| `X-RateLimit-Remaining` | Requests left in window | Always |
-| `X-RateLimit-Reset` | Unix timestamp when window resets | Always |
-| `Retry-After` | Seconds until client can retry | Only on 429 |
+| Header                  | Description                       | When        |
+| ----------------------- | --------------------------------- | ----------- |
+| `X-RateLimit-Limit`     | Max requests allowed              | Always      |
+| `X-RateLimit-Remaining` | Requests left in window           | Always      |
+| `X-RateLimit-Reset`     | Unix timestamp when window resets | Always      |
+| `Retry-After`           | Seconds until client can retry    | Only on 429 |
 
 ## Algorithms
 
-| Algorithm | Memory/Client | Boundary-Safe | Best For |
-|-----------|--------------|---------------|----------|
-| **Fixed Window** | O(1) — 2 numbers | ❌ No | Simple internal tools |
-| **Sliding Window Log** | O(n) — n timestamps | ✅ Yes | Audit-critical systems |
-| **Token Bucket** | O(1) — 2 numbers | ✅ Yes | **Production APIs** (recommended) |
+| Algorithm              | Memory/Client       | Boundary-Safe | Best For                          |
+| ---------------------- | ------------------- | ------------- | --------------------------------- |
+| **Fixed Window**       | O(1) — 2 numbers    | ❌ No         | Simple internal tools             |
+| **Sliding Window Log** | O(n) — n timestamps | ✅ Yes        | Audit-critical systems            |
+| **Token Bucket**       | O(1) — 2 numbers    | ✅ Yes        | **Production APIs** (recommended) |
 
 See [DECISIONS.md](DECISIONS.md) for detailed trade-off analysis.
 
@@ -196,7 +153,7 @@ npm run demo
 ## Project Structure
 
 ```
-ratemesh/
+RateLime/
 ├── src/
 │   ├── cache/
 │   │   └── LRUCache.js            ← Hand-built HashMap + Doubly Linked List
@@ -209,7 +166,7 @@ ratemesh/
 │   │   ├── MemoryStorage.js        ← LRU-backed, single server
 │   │   └── RedisStorage.js         ← Lua scripts, distributed
 │   ├── middleware/
-│   │   └── RateMesh.js             ← Express middleware
+│   │   └── RateLime.js             ← Express middleware
 │   ├── metrics/
 │   │   └── MetricsCollector.js     ← Built-in, zero-dependency metrics
 │   └── index.js                    ← Main entry point
